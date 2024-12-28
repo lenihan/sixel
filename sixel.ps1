@@ -34,7 +34,7 @@ $asciiImage = @'
 function outputSixel($asciiImage, $charToColorMap) {
   
   # Get line length, verify all lines same length
-  $lines = $asciiImage -split '`n'
+  $lines = $asciiImage -split "`r`n"
   $lineLength = $null
   foreach ($line in $lines) {
       if (!$lineLength) {$lineLength = $line.Length}
@@ -45,9 +45,10 @@ function outputSixel($asciiImage, $charToColorMap) {
 
   # Get all the colors used in $lines
   $colors = @{}
+
   foreach ($line in $lines) {
-    foreach ($character in $line.ToCharArray()) {
-      $colors["$character"] = $true
+    foreach ($char in $line.ToCharArray()) {
+      $colors["$char"] = $true
     }
   }
   
