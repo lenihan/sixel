@@ -19,7 +19,7 @@ $charToColorMap = @{
 }
 
 
-$hereString = @'
+$asciiImage = @'
      ***     
    *     *   
  *         * 
@@ -31,13 +31,39 @@ $hereString = @'
      ***     
 '@
 
-$lines = $hereString -split '`n'
-$lineLength = $null
-foreach ($line in $lines) {
-    if (!$lineLength) {$lineLength = $line.Length}
-    elseif ($line.Length -ne $lineLength) {
-        throw "Expecting line length of $lineLength but got $($line.Length) for this line: $line"
+function outputSixel($asciiImage, $charToColorMap) {
+  
+  # Get line length, verify all lines same length
+  $lines = $asciiImage -split '`n'
+  $lineLength = $null
+  foreach ($line in $lines) {
+      if (!$lineLength) {$lineLength = $line.Length}
+      elseif ($line.Length -ne $lineLength) {
+          throw "Expecting line length of $lineLength but got $($line.Length) for this line: $line"
+      }
+  }
+
+  # Get all the colors used in $lines
+  $colors = @{}
+  foreach ($line in $lines) {
+    foreach ($character in $line.ToCharArray()) {
+      $colors["$character"] = $true
     }
+  }
+  
+  $colors.Keys.count
+  # Create color header
+
+  # For each color, create sixel
+  # Use - to move to next line
+  # Use !<REPEATS><ASCII> for run length encoding
+
+
+  # combine all sixels into single image
+  # Use $ to overwrite previous line
+
 }
 
-`
+
+
+outputSixel $asciiImage $charToColorMap
