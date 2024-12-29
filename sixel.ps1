@@ -51,15 +51,26 @@ function outputSixel($asciiImage, $charToColorMap) {
     }
   }
   
-  $colors.Keys.count
-  # Create color header
-
   # For each color, create sixel
-  # Use - to move to next line
-  # Use !<REPEATS><ASCII> for run length encoding
-  foreach ($color in $colors) {
-    
+  # End with "$": Next line overprints
+  # End with "-": Next line is new line
+  # "!<REPEATS><ASCII>"" for run length encoding
+  $numSixelRows = [Math]::Ceiling($lines.count / 6)
+  $lastSixelRow = $numSixelRows - 1
+  foreach($row in 0.. $lastSixelRow) {
+    $rowOffset = $row * 6
+    $lines[0 + $rowOffset][0]
+    $lines[1 + $rowOffset][0]
+    $lines[2 + $rowOffset][0]
+    $lines[3 + $rowOffset][0]
+    $lines[4 + $rowOffset][0]
+    $lines[5 + $rowOffset][0]
   }
+
+
+  # foreach ($color in $colors) {
+
+  # }
   
 
 
