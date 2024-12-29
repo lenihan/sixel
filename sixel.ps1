@@ -45,7 +45,6 @@ function outputSixel($asciiImage, $charToColorMap) {
 
   # Get all the colors used in $lines
   $colors = @{}
-
   foreach ($line in $lines) {
     foreach ($char in $line.ToCharArray()) {
       $colors["$char"] = $true
@@ -58,6 +57,10 @@ function outputSixel($asciiImage, $charToColorMap) {
   # For each color, create sixel
   # Use - to move to next line
   # Use !<REPEATS><ASCII> for run length encoding
+  foreach ($color in $colors) {
+    
+  }
+  
 
 
   # combine all sixels into single image
