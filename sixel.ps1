@@ -31,10 +31,18 @@ $asciiImage = @'
      ***     
 '@
 
+
+function getColor($lines, $row, $col) {
+  if ($row -ge $lines.Count) {return $null}
+  if ($col -ge $lines[$row].Count) {return $null}
+  return $lines[$row][$col]
+}
+
 function outputSixel($asciiImage, $charToColorMap) {
+  $asciiImage = $asciiImage -replace "`r"
   
   # Get line length, verify all lines same length
-  $lines = $asciiImage -split "`r`n"
+  $lines = $asciiImage -split "`n"
   $lineLength = $null
   foreach ($line in $lines) {
       if (!$lineLength) {$lineLength = $line.Length}
@@ -57,26 +65,21 @@ function outputSixel($asciiImage, $charToColorMap) {
   # "!<REPEATS><ASCII>"" for run length encoding
   $numSixelRows = [Math]::Ceiling($lines.count / 6)
   $lastSixelRow = $numSixelRows - 1
-  foreach($row in 0.. $lastSixelRow) {
-    $rowOffset = $row * 6
-    $lines[0 + $rowOffset][0]
-    $lines[1 + $rowOffset][0]
-    $lines[2 + $rowOffset][0]
-    $lines[3 + $rowOffset][0]
-    $lines[4 + $rowOffset][0]
-    $lines[5 + $rowOffset][0]
+  foreach($color in $colors.Keys) {
+    "NEW COLOR: '$color'"
+    foreach($sixelRow in 0..$lastSixelRow) {
+      $col = 0 # TODO: rest of line
+      foreach($row in 0..5) {
+        $offsetRow = $sixelRow * 6 + $row
+        $c = getColor $lines $offsetRow $col 
+        $c -eq $color
+      }
+    }
   }
-
-
-  # foreach ($color in $colors) {
-
-  # }
-  
 
 
   # combine all sixels into single image
   # Use $ to overwrite previous line
-
 }
 
 
