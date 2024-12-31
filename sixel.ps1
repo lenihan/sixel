@@ -69,11 +69,13 @@ function outputSixel($asciiImage, $charToColorMap) {
     "NEW COLOR: '$color'"
     foreach($sixelRow in 0..$lastSixelRow) {
       $col = 0 # TODO: rest of line
+      $sixel = 0
       foreach($row in 0..5) {
         $offsetRow = $sixelRow * 6 + $row
-        $c = getColor $lines $offsetRow $col 
-        $c -eq $color
+        $c = getColor $lines $offsetRow $col
+        if ($c -eq $color) {$sixel += [Math]::Pow(2, $row)}
       }
+      $encodedSixel = $sixel + [char]"?"  # Reason for "?" offset explained here: https://en.wikipedia.org/wiki/Sixel#Description
     }
   }
 
