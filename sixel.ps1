@@ -55,17 +55,33 @@ function outputSixel($asciiImage, $charToColorMap) {
   $colors = @{}
   foreach ($line in $lines) {
     foreach ($char in $line.ToCharArray()) {
-      $colors["$char"] = $true
+      if (!$colors.Contains("$char")) {$colors["$char"] = $colors.Count}
     }
   }
+
+  # Create color register setup string
+  $colorRegisters = New-Object System.Collections.ArrayList
+  $m = "2" # RGB Mode
+  foreach ($color in $colors.Keys) {
+    $c = $colors[$color] # color register
+    $rgb = $charToColorMap[$color]
+    $r = $rgb.R
+    $g = $rgb.G
+    $b = $rgb.B
+    $null = $colorRegisters.Add("#$c;$m;$r;$g;$b")
+  }
+  $colorRegisterSetup = $colorRegisters -join ";"
+  $colorRegisterSetup
   
   # For each color, create sixel
   # End with "$": Next line overprints
   # End with "-": Next line is new line
+  # Compress: "!123?" Will make 123 ?'s. Only saving space for 4+ repeats
   # "!<REPEATS><ASCII>"" for run length encoding
   $numSixelRows = [Math]::Ceiling($lines.count / 6)
   $lastSixelRow = $numSixelRows - 1
   $lastCol = $lineLength - 1
+  $lastColor = $colors.Keys | Select-Object -Last 1
   foreach($sixelRow in 0..$lastSixelRow) {
     foreach($color in $colors.Keys) {
       $sixelCodes = $null
@@ -80,7 +96,11 @@ function outputSixel($asciiImage, $charToColorMap) {
         $encodedSixel = [char]([int]$sixel + [char]"?")  # Reason for "?" offset explained here: https://en.wikipedia.org/wiki/Sixel#Description
         $sixelCodes += $encodedSixel
       }
-      Write-Host "SixelCodes = $sixelCodes"
+      # TODO $sixelCodes = compressSixel $sixelCodes
+      $colorRegister = $colors[$color]                 # color register
+      $endLine = $color -eq $lastColor ? "-" : "$"     # add last char for new line (-) or overwrite ($)
+      $final = "#$colorRegister$sixelCodes$endLine"             
+      Write-Host "SixelCodes = $final"
     }
   }
 
