@@ -33,8 +33,8 @@ $asciiImage = @'
 
 
 function getColor($lines, $row, $col) {
-  if ($row -ge $lines.Count) {return $null}
-  if ($col -ge $lines[$row].Count) {return $null}
+  if ($row -ge $lines.Count) {throw "Expecting row ($row) to be less than number of lines ($($lines.Count))"}
+  if ($col -ge $lines[$row].Length) {throw "Expecting col ($col) to be less than number of col ($($lines[$row].Length))"}
   return $lines[$row][$col]
 }
 
@@ -68,17 +68,19 @@ function outputSixel($asciiImage, $charToColorMap) {
   $lastCol = $lineLength - 1
   foreach($sixelRow in 0..$lastSixelRow) {
     foreach($color in $colors.Keys) {
+      $sixelCodes = $null
       foreach($col in 0..$lastCol) {
         $sixel = 0
         foreach($row in 0..5) {
           $offsetRow = $sixelRow * 6 + $row
+          if ($offsetRow -ge $lines.Count) {continue}
           $c = getColor $lines $offsetRow $col
-          "$offsetRow $col $c"
           if ($c -eq $color) {$sixel += [Math]::Pow(2, $row)}
         }
         $encodedSixel = [char]([int]$sixel + [char]"?")  # Reason for "?" offset explained here: https://en.wikipedia.org/wiki/Sixel#Description
-        Write-Host "color $color`: $encodedSixel"
+        $sixelCodes += $encodedSixel
       }
+      Write-Host "SixelCodes = $sixelCodes"
     }
   }
 
