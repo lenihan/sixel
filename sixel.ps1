@@ -61,13 +61,15 @@ function outputSixel($asciiImage, $charToColorMap) {
 
   # Create color register setup string
   $colorRegisters = New-Object System.Collections.ArrayList
+  # $m = "1" # HSL Mode
   $m = "2" # RGB Mode
   foreach ($color in $colors.Keys) {
     $c = $colors[$color] # color register
     $rgb = $charToColorMap[$color]
-    $r = $rgb.R
-    $g = $rgb.G
-    $b = $rgb.B
+    # Convert from 0-255 to 0-100
+    $r = $rgb.R/255 * 100
+    $g = $rgb.G/255 * 100
+    $b = $rgb.B/255 * 100
     $null = $colorRegisters.Add("#$c;$m;$r;$g;$b")
   }
   $colorRegisterSetup = $colorRegisters -join ";"
