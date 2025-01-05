@@ -111,8 +111,10 @@ function outputSixel($asciiImage, $colorCharToColor) {
       $sixelData += $lineControl
     }
 
-    # Output sixel string
-     
+    # Put it all together
+    $enterSixelMode = "`ePq"
+    $exitSixelMode = "`e\"
+    "$enterSixelMode$colorMapRegisters;$sixelData$exitSixelMode" 
   }
 
 <#
