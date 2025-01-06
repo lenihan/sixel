@@ -56,46 +56,50 @@ function outputSixel($asciiImage, $colorCharToColor) {
       }
   }
 
+  # Get all colors used
+  $colorCharToRegisterNumber = @{}
+  $lastRow = $lines.Count - 1
+  $lastCol = $lineLength - 1
+  foreach($col in 0..$lastCol) {
+    foreach($row in 0..$lastRow) {
+      $c = getColorChar $lines $row $col
+      if (!$colorCharToRegisterNumber.Contains("$c")) {
+        $colorCharToRegisterNumber["$c"] = $colorCharToRegisterNumber.Count
+      }        
+    }
+  }
+
+  # Calculate color map registers
+  $colorMapRegisters = ""
+  $m = "1" # HLS - using instead of RGB ("2") because it has more total colors by almost 4x
+           #       HLS = 360 * 100 * 100 = 3,600,000          
+           #       RGB = 100 * 100 * 100 = 1,000,000
+  foreach($colorChar in $colorCharToRegisterNumber.Keys) {
+    $r = $colorCharToRegisterNumber[$colorChar]
+    $color = $colorCharToColor[$colorChar]
+
+    # Extract HLS
+    $h = $color.GetHue() 
+    $l = $color.GetBrightness() * 100
+    $s = $color.GetSaturation() * 100
+
+    # Setup color map register
+    $colorMapRegisters += "#$r;$m;$h;$l;$s;"
+  }
+  
   # Output sixel string per sixel row
   $numSixelRows = [Math]::Ceiling($lines.count / 6)
   $lastSixelRow = $numSixelRows - 1
+  $sixelData = ""
   foreach($sixelRow in 0..$lastSixelRow) {
-    
-    # Get colors used in this sixel row
-    $colorCharToRegister = @{}
-    $lastCol = $lineLength - 1
-    foreach($col in 0..$lastCol) {
-      foreach($subRow in 0..5) {
-        $imageRow = $sixelRow * 6 + $subRow
-        if ($imageRow -ge $lines.Count) {continue}
-        $c = getColorChar $lines $imageRow $col
-        if (!$colorCharToRegister.Contains("$c")) {$colorCharToRegister["$c"] = $colorCharToRegister.Count}        
-      }
-    }
-
-    # Calculate color map registers
-    $colorMapRegistersArrayList = New-Object System.Collections.ArrayList
-    $m = "1" # HLS - using instead of RGB ("2") because it has more total colors by almost 4x
-             #       HLS = 360 * 100 * 100 = 3,600,000          
-             #       RGB = 100 * 100 * 100 = 1,000,000
-    foreach($colorChar in $colorCharToRegister.Keys) {
-      $r = $colorCharToRegisterNumber[$colorChar]
-      $color = $colorCharToColor[$colorChar]
-
-      # Extract HLS
-      $h = $color.GetHue() 
-      $l = $color.GetBrightness() * 100
-      $s = $color.GetSaturation() * 100
-
-      # Setup color map register
-      $null = $colorMapRegistersArrayList.Add("#$r;$m;$h;$l;$s")
-    }
-    $colorMapRegisters = $colorMapRegistersArrayList -join ";"
-
     # Calculate sixel data in this sixel row
-    $sixelData = ""
-    $lastColor = $colorCharToRegister.Keys | Select-Object -Last 1
-    foreach($colorChar in $colorCharToRegister.Keys) {
+    $lastColor = $colorCharToRegisterNumber.Keys | Select-Object -Last 1
+    foreach($colorChar in $colorCharToRegisterNumber.Keys) {
+      $r = $colorCharToRegisterNumber[$colorChar]
+      
+      # Start sixel data with # and color register
+      $sixelData += "#$r"
+      
       foreach($col in 0..$lastCol) {
         $sixel = 0
         foreach($subRow in 0..5) {
@@ -110,12 +114,14 @@ function outputSixel($asciiImage, $colorCharToColor) {
       $lineControl = $colorChar -eq $lastColor ? "-" : "$"     # new line (-) or overwrite ($)
       $sixelData += $lineControl
     }
-
-    # Put it all together
-    $enterSixelMode = "`ePq"
-    $exitSixelMode = "`e\"
-    "$enterSixelMode$colorMapRegisters;$sixelData$exitSixelMode" 
   }
+
+  # Put it all together
+  $enterSixelMode = "`ePq"
+  $exitSixelMode = "`e\"
+  # $enterSixelMode = "Pq"
+  # $exitSixelMode = "\"
+  "$enterSixelMode$colorMapRegisters$sixelData$exitSixelMode" 
 
 <#
 
