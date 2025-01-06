@@ -119,71 +119,7 @@ function outputSixel($asciiImage, $colorCharToColor) {
   # Put it all together
   $enterSixelMode = "`ePq"
   $exitSixelMode = "`e\"
-  # $enterSixelMode = "Pq"
-  # $exitSixelMode = "\"
   "$enterSixelMode$colorMapRegisters$sixelData$exitSixelMode" 
-
-<#
-
-# Get all the colors used in $lines
-$colors = @{}
-foreach ($line in $lines) {
-    foreach ($char in $line.ToCharArray()) {
-      if (!$colors.Contains("$char")) {$colors["$char"] = $colors.Count}
-    }
-  }
-  
-  # Create color register setup string
-  $colorRegisters = New-Object System.Collections.ArrayList
-  # $m = "1" # HSL Mode
-  $m = "2" # RGB Mode
-  foreach ($color in $colors.Keys) {
-    $c = $colors[$color] # color register
-    $rgb = $colorCharToColor[$color]
-    # Convert from 0-255 to 0-100
-    $r = $rgb.R/255 * 100
-    $g = $rgb.G/255 * 100
-    $b = $rgb.B/255 * 100
-    $null = $colorRegisters.Add("#$c;$m;$r;$g;$b")
-  }
-  $colorRegisterSetup = $colorRegisters -join ";"
-  $colorRegisterSetup
-  
-  # For each color, create sixel
-  # End with "$": Next line overprints
-  # End with "-": Next line is new line
-  # Compress: "!123?" Will make 123 ?'s. Only saving space for 4+ repeats
-  # "!<REPEATS><ASCII>"" for run length encoding
-  $numSixelRows = [Math]::Ceiling($lines.count / 6)
-  $lastSixelRow = $numSixelRows - 1
-  $lastCol = $lineLength - 1
-  $lastColor = $colors.Keys | Select-Object -Last 1
-  foreach($sixelRow in 0..$lastSixelRow) {
-    foreach($color in $colors.Keys) {
-      $sixelCodes = $null
-      foreach($col in 0..$lastCol) {
-        $sixel = 0
-        foreach($row in 0..5) {
-          $offsetRow = $sixelRow * 6 + $row
-          if ($offsetRow -ge $lines.Count) {continue}
-          $c = getColor $lines $offsetRow $col
-          if ($c -eq $color) {$sixel += [Math]::Pow(2, $row)}
-        }
-        $encodedSixel = [char]([int]$sixel + [char]"?")  # Reason for "?" offset explained here: https://en.wikipedia.org/wiki/Sixel#Description
-        $sixelCodes += $encodedSixel
-      }
-      # TODO $sixelCodes = compressSixel $sixelCodes
-      $colorRegister = $colors[$color]                 # color register
-      $endLine = $color -eq $lastColor ? "-" : "$"     # add last char for new line (-) or overwrite ($)
-      $final = "#$colorRegister$sixelCodes$endLine"             
-      Write-Host "SixelCodes = $final"
-    }
-  }
-  
-  
-  # combine all sixels into single image
-  # Use $ to overwrite previous line
-#>  
 }
 
 
